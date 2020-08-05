@@ -13,13 +13,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.io.charsets.Charset
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.console.command.CommandManager
+import net.mamoe.mirai.console.command.ConsoleCommandSender
 import net.mamoe.mirai.console.command.DefaultCommands
 import net.mamoe.mirai.console.plugins.PluginManager
 import net.mamoe.mirai.console.utils.MiraiConsoleUI
 import net.mamoe.mirai.utils.SimpleLogger.LogPriority
 import net.mamoe.mirai.utils.WeakRef
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
+import java.io.*
 import kotlin.coroutines.EmptyCoroutineContext
 
 
@@ -138,6 +138,22 @@ object MiraiConsole : CoroutineScope by CoroutineScope(EmptyCoroutineContext) {
 
         /* 尝试从系统配置自动登录 */
         DefaultCommands.tryLoginAuto()
+
+        /* 自动执行config.txt */
+        val configFile = File("config.txt");
+        if(configFile.exists()) {
+            logger("发现config.txt. 正在自动加载...")
+            val confReader = FileInputStream(configFile).bufferedReader().readLines();
+            val perAction: (String) -> Unit = { command: String ->
+                if(command.startsWith("#")) {
+                    logger(command.substring(1));
+                } else if(!command.startsWith("//")) {
+                    logger("=> $command")
+                    CommandManager.runCommand(ConsoleCommandSender, command);
+                }
+            };
+            confReader.forEach(perAction);
+        }
     }
 
     /**
