@@ -3,16 +3,16 @@
 因此，本分支意在保留对0.5.2 API的兼容性，并添加一些新功能及接口。版本号将以ALT结尾。
 
 ## 构建
-```> .\gradlew shadowJvmJar``` 即可
+```> .\gradlew shadowJar``` 或 ```.\gradlew shadowJvmJar``` 即可
 
 ## Bug
-mirai-console (pure) 的```shadowJar/shadowJvmJar```无法成功打包依赖，产生的jar文件不包含依赖库。解决方法有几种
+mirai-console (pure) 的```shadowJar```无法成功打包依赖。解决方法有几种
 
-- 使用mirai-console-terminal
-- 将依赖库手动从terminal复制到console的jar里（不推荐）
+- 使用mirai-console-terminal，以Pure模式启动
+- 使用```shadowJvmJar```。产生的jar文件包含了一些不必要的依赖库，不过问题不大。
 - 把几个依赖库拷贝到lib里，通过wrapper加载
 
-<s>这个问题在原仓库中就有，不知道是不是我打开方式不对</s>
+<s>这个问题在原仓库中就有，不知道是不是我打开方式不对。shadowJar偶尔能用 大多数时候不行</s>
 
 ## 模块说明 (同[mirai-console@423858](https://github.com/mamoe/mirai-console/tree/42385895cda605730a50344eb968b1402828477b))
 

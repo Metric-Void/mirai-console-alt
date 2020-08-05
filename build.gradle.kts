@@ -66,6 +66,8 @@ subprojects {
         val shadowJvmJar by tasks.creating(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
             group = "mirai"
 
+            classifier = "jvm"
+
             val compilation = kotlin.target.compilations["main"]
 
             dependsOn(compilation.compileKotlinTask)
