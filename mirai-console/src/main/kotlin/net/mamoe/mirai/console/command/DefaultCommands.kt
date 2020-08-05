@@ -24,6 +24,7 @@ import net.mamoe.mirai.getFriendOrNull
 import net.mamoe.mirai.message.GroupMessageEvent
 import net.mamoe.mirai.utils.SimpleLogger
 import java.util.*
+import kotlin.system.exitProcess
 
 
 /**
@@ -365,6 +366,23 @@ internal object DefaultCommands {
                     }
                 }
                 true
+            }
+        }
+
+        registerConsoleCommands {
+            name = "stop"
+            description = "Stop Mirai in a slightly more elegant way"
+            usage = "/stop - Stops Mirai"
+            onCommand { _ ->
+                PluginManager.disablePlugins();
+                CommandManager.cancel();
+                try {
+                    Bot.botInstances.forEach {
+                        it.close()
+                    }
+                } catch (ignored: Exception) {
+                }
+                exitProcess(0)
             }
         }
     }
