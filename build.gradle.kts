@@ -6,6 +6,8 @@ tasks.withType(JavaCompile::class.java) {
     options.encoding = "UTF8"
 }
 
+apply(plugin = "com.github.johnrengelman.shadow")
+
 buildscript {
     repositories {
         maven(url = "https://dl.bintray.com/kotlin/kotlin-eap")
@@ -58,6 +60,32 @@ subprojects {
                         it.renameTo(output)
                     }
                 }
+            }
+        }
+
+        val shadowJvmJar by tasks.creating(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
+            group = "mirai"
+
+            val compilation = kotlin.target.compilations["main"]
+
+            dependsOn(compilation.compileKotlinTask)
+
+            from(compilation.output)
+
+            configurations = listOf(compilation.compileDependencyFiles as Configuration)
+
+            this.exclude { file ->
+                file.name.endsWith(".sf", ignoreCase = true)
+                    .also { if (it) println("excluded ${file.name}") }
+            }
+
+            this.manifest {
+                this.attributes(
+                    "Manifest-Version" to 1,
+                    "Implementation-Vendor" to "Mamoe Technologies",
+                    "Implementation-Title" to this@afterEvaluate.name.toString(),
+                    "Implementation-Version" to this@afterEvaluate.version.toString()
+                )
             }
         }
 
