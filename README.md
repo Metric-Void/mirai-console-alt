@@ -6,13 +6,11 @@
 ```> .\gradlew shadowJar``` 或 ```.\gradlew shadowJvmJar``` 即可
 
 ## Bug
-mirai-console (pure) 的```shadowJar```无法成功打包依赖。解决方法有几种
+在项目根目录(```mirai-console-alt```)中直接```shadowJar```时，```mirai-console```中构建出的文件不包含依赖。
 
-- 使用mirai-console-terminal，以Pure模式启动
-- 使用```shadowJvmJar```。产生的jar文件包含了一些不必要的依赖库，不过问题不大。
-- 把几个依赖库拷贝到lib里，通过wrapper加载
+只要进入mirai-console的子目录，并执行```..\gradlew shadowJar```即可。如果构建的是包含Kotlin库的版本(```gradle shadowJvmJar```)则不存在此问题。
 
-<s>这个问题在原仓库中就有，不知道是不是我打开方式不对。shadowJar偶尔能用 大多数时候不行</s>
+<s>这个问题在原仓库中就有，不知道是不是我打开方式不对？</s>
 
 ## 模块说明 (同[mirai-console@423858](https://github.com/mamoe/mirai-console/tree/42385895cda605730a50344eb968b1402828477b))
 

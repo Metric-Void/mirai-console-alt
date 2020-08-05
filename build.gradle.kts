@@ -17,7 +17,7 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.github.jengelman.gradle.plugins:shadow:5.2.0")
+        classpath("com.github.jengelman.gradle.plugins:shadow:6.0.0")
         classpath("org.jetbrains.kotlin:kotlin-serialization:${Versions.Kotlin.stdlib}")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.Kotlin.stdlib}")
         classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4") // don"t use any other.
@@ -42,25 +42,8 @@ subprojects {
             (this as ExtensionAware).extensions.getByName("kotlin") as? org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
                 ?: return@afterEvaluate
 
-        tasks.getByName("shadowJar") {
-            doLast {
-                this.outputs.files.forEach {
-                    if (it.nameWithoutExtension.endsWith("-all")) {
-                        val output = File(
-                            it.path.substringBeforeLast(File.separator) + File.separator + it.nameWithoutExtension.substringBeforeLast(
-                                "-all"
-                            ) + "." + it.extension
-                        )
-
-                        println("Renaming to ${output.path}")
-                        if (output.exists()) {
-                            output.delete()
-                        }
-
-                        it.renameTo(output)
-                    }
-                }
-            }
+        tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>() {
+            classifier = ""
         }
 
         val shadowJvmJar by tasks.creating(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
