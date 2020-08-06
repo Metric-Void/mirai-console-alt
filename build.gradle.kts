@@ -2,6 +2,15 @@
 
 import kotlin.math.pow
 
+plugins {
+    java
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 tasks.withType(JavaCompile::class.java) {
     options.encoding = "UTF8"
 }
@@ -72,54 +81,6 @@ subprojects {
                     "Implementation-Version" to this@afterEvaluate.version.toString()
                 )
             }
-        }
-
-        val githubUpload by tasks.creating {
-            group = "mirai"
-            dependsOn(tasks.getByName("shadowJar"))
-
-            doFirst {
-                timeout.set(java.time.Duration.ofHours(3))
-                findLatestFile()?.let { (_, file) ->
-                    val filename = file.name
-                    println("Uploading file $filename")
-                    runCatching {
-                        upload.GitHub.upload(
-                            file,
-                            "https://api.github.com/repos/mamoe/mirai-repo/contents/shadow/${project.name}/$filename",
-                            project
-                        )
-                    }.exceptionOrNull()?.let {
-                        System.err.println("GitHub Upload failed")
-                        it.printStackTrace() // force show stacktrace
-                        throw it
-                    }
-                }
-            }
-        }
-
-        val cuiCloudUpload by tasks.creating {
-            group = "mirai"
-            dependsOn(tasks.getByName("shadowJar"))
-
-            doFirst {
-                timeout.set(java.time.Duration.ofHours(3))
-                findLatestFile()?.let { (_, file) ->
-                    val filename = file.name
-                    println("Uploading file $filename")
-                    runCatching {
-                        upload.CuiCloud.upload(
-                            file,
-                            project
-                        )
-                    }.exceptionOrNull()?.let {
-                        System.err.println("CuiCloud Upload failed")
-                        it.printStackTrace() // force show stacktrace
-                        throw it
-                    }
-                }
-            }
-
         }
     }
 }
