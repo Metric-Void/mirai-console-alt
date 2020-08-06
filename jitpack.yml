@@ -1,6 +1,8 @@
 jdk:
   - openjdk11
 install:
+  - chmod +x ./gradlew
+  - ./gradlew build
   - ./gradlew shadowJar
   - cd mirai-console && ../gradlew shadowJar
   - cd .. && ./gradlew install
