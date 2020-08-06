@@ -17,3 +17,7 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
+    - name: ShadowJar
+      run: ./gradlew shadowJar
+    - name: Shadow :mirai-console separately
+      run: cd mirai-console && ../gradlew shadowJar
