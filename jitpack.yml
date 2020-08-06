@@ -1,0 +1,6 @@
+jdk:
+  - openjdk11
+install:
+  - ./gradlew shadowJar
+  - cd mirai-console && ../gradlew shadowJar
+  - cd .. && ./gradlew install
