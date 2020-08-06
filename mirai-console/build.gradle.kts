@@ -6,6 +6,7 @@ plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
     id("java")
+    maven
     `maven-publish`
     id("com.jfrog.bintray")
 }

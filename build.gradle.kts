@@ -1,6 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
 import kotlin.math.pow
+import java.time.Duration
 
 tasks.withType(JavaCompile::class.java) {
     options.encoding = "UTF8"
@@ -79,7 +80,7 @@ subprojects {
             dependsOn(tasks.getByName("shadowJar"))
 
             doFirst {
-                timeout.set(java.time.Duration.ofHours(3))
+                timeout.set(Duration.ofHours(3) as Duration)
                 findLatestFile()?.let { (_, file) ->
                     val filename = file.name
                     println("Uploading file $filename")
@@ -103,7 +104,7 @@ subprojects {
             dependsOn(tasks.getByName("shadowJar"))
 
             doFirst {
-                timeout.set(java.time.Duration.ofHours(3))
+                timeout.set(Duration.ofHours(3) as Duration)
                 findLatestFile()?.let { (_, file) ->
                     val filename = file.name
                     println("Uploading file $filename")

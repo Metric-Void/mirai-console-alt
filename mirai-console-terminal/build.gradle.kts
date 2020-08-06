@@ -2,6 +2,7 @@ plugins {
     id("kotlinx-serialization")
     id("kotlin")
     id("java")
+    maven
 }
 
 
