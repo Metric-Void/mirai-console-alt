@@ -9,6 +9,7 @@
 
 package net.mamoe.mirai.console
 
+import com.metricv.mirai.router.Router
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.io.charsets.Charset
 import net.mamoe.mirai.Bot
@@ -17,6 +18,10 @@ import net.mamoe.mirai.console.command.ConsoleCommandSender
 import net.mamoe.mirai.console.command.DefaultCommands
 import net.mamoe.mirai.console.plugins.PluginManager
 import net.mamoe.mirai.console.utils.MiraiConsoleUI
+import net.mamoe.mirai.event.MessageSubscribersBuilder
+import net.mamoe.mirai.event.subscribeFriendMessages
+import net.mamoe.mirai.event.subscribeGroupMessages
+import net.mamoe.mirai.event.subscribeTempMessages
 import net.mamoe.mirai.utils.SimpleLogger.LogPriority
 import net.mamoe.mirai.utils.WeakRef
 import java.io.*
@@ -154,6 +159,17 @@ object MiraiConsole : CoroutineScope by CoroutineScope(EmptyCoroutineContext) {
             };
             confReader.forEach(perAction);
         }
+
+        /* 配置router */
+        subscribeGroupMessages { always {
+                Router.getInstance().routeGroupMsg(this) } }
+
+        subscribeFriendMessages { always {
+                Router.getInstance().routeFriendMsg(this) } }
+
+        subscribeTempMessages {always {
+                Router.getInstance().routeTemporaryMsg(this) } }
+        logger("Router配置成功")
     }
 
     /**

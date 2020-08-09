@@ -20,7 +20,7 @@ public class PrefixMatcher implements Matcher{
     String wantedPrefix = "";
     String lastRemainder = "";
 
-    PrefixMatcher(String prefix) {
+    public PrefixMatcher(String prefix) {
         this.wantedPrefix = prefix;
     }
 
