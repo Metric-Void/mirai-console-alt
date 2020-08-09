@@ -2,6 +2,29 @@
 这是一个[mirai-console](https://github.com/mamoe/mirai-console) 的分支。大部分mirai插件仍在使用0.5.2的API，而1.0(reborn)的文档非常缺少。
 因此，本分支意在保留对0.5.2 API的兼容性，并添加一些新功能及接口。版本号将以ALT结尾。
 
+添加了许多对用户和开发者友好的功能。
+## 功能更新 && 更新日志
+[更新日志](update-log.md)
+
+或者你也可以去[看看release](https://github.com/Metric-Void/mirai-console-alt/releases)
+
+## 基于此console开发插件
+项目已配置JitPack构建。
+
+Gradle:
+```$xslt
+	allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+
+	dependencies {
+	    compileOnly 'com.github.Metric-Void.mirai-console-alt:mirai-console:<版本>'
+	}
+```
+
 ## 构建
 ```> .\gradlew shadowJar``` 或 ```.\gradlew shadowJvmJar``` 即可
 

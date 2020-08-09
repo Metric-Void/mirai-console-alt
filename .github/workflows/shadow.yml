@@ -27,7 +27,7 @@ jobs:
       - name: Gradle build
         run: ./gradlew build # if test's failed, don't publish
       - name: ShadowJar
-          run: ./gradlew shadowJar
+        run: ./gradlew shadowJar
       - name: Shadow :mirai-console separately
         run: cd mirai-console && ../gradlew shadowJar
       - name: Upload artifact mirai-console
