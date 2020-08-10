@@ -14,8 +14,13 @@ import java.util.Optional;
  * This matcher does not care about MatchOptions.
  * It will always match an At or AtAll element, and return qqid as match.
  * qqid=0 means @all.
+ *
+ * Does not care about MATCH_* or CATCH_* options.
+ * It will always match the @At, and returns the id being "ATted".
+ * - In case of -1 (match anyone), the one who's being actually "ATted" will be returned as the matched result.
+ * - In case of 0 (@all), 0 will be the matched result.
  */
-public class AtMatcher implements Matcher{
+public class AtMatcher implements Matcher {
     public long qqid;
 
     /**
@@ -39,24 +44,19 @@ public class AtMatcher implements Matcher{
     }
 
     @Override
-    public Optional<Object> getMatch(RoutingContext context, SingleMessage msg) {
+    public MatchResult getMatch(RoutingContext context, SingleMessage msg) {
         if(msg instanceof At) {
             if (qqid == -1 || ((At) msg).getTarget() == qqid)
-                return Optional.of(((At) msg).getTarget());
+                return MatchResult.match(((At) msg).getTarget(), null);
         } else if (msg instanceof AtAll) {
-            return Optional.of(0);
+            return MatchResult.match(0, null);
         }
-        return Optional.empty();
+        return MatchResult.notMatch();
     }
 
     @Override
     public SingleMessage getMatchRemainder(RoutingContext context, SingleMessage msg) {
         return null;
-    }
-
-    @Override
-    public Optional<Object> seekMatch(RoutingContext context, List<SingleMessage> msgChain) {
-        return Optional.empty();
     }
 
     @Override
@@ -71,11 +71,6 @@ public class AtMatcher implements Matcher{
 
     @Override
     public EnumSet<MatchOption> getCurrentOpts() {
-        return EnumSet.of(
-                MatchOption.MATCH_ALL,
-                MatchOption.SEEK_ADJ,
-                MatchOption.DISPOSE,
-                MatchOption.CATCH_PART
-        );
+        return getDefaultOpts();
     }
 }

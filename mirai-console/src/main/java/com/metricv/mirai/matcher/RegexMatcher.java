@@ -19,9 +19,10 @@ import java.util.regex.Pattern;
  *
  * Return Behaviors differ depending on CATCH option.
  * CATCH_ALL: Returns the whole string.
- * CATCH_MATC: Returns a java.util.regex.MatchResult that contains elements matched.
+ * CATCH_MATC: Returns a {@link java.util.regex.MatchResult} that contains elements matched.
  *
  * MATCH_PART may not work well. It works by adding ".*" to the start and end to the pattern you provided.
+ * Please do understand the implications.
  */
 public class RegexMatcher implements Matcher {
     Pattern pattern;
@@ -105,8 +106,8 @@ public class RegexMatcher implements Matcher {
     }
 
     @Override
-    public Optional<Object> getMatch(@Nullable RoutingContext context, final SingleMessage msg) {
-        if(!(msg instanceof PlainText)) return Optional.empty();
+    public MatchResult getMatch(@Nullable RoutingContext context, final SingleMessage msg) {
+        if(!(msg instanceof PlainText)) return MatchResult.notMatch();
         String content = ((PlainText) msg).getContent();
         java.util.regex.Matcher matcher = pattern.matcher(content);
 
@@ -119,55 +120,17 @@ public class RegexMatcher implements Matcher {
             }
 
             if(opt.contains(MatchOption.CATCH_ALL)) {
-                return Optional.of(content);
+                return MatchResult.match(content, remainder);
             } else {
-                return Optional.of(matcher);
+                return MatchResult.match(matcher, remainder);
             }
         } else {
-            remainder = null;
-            return Optional.empty();
+            return MatchResult.notMatch();
         }
     }
 
     @Override
     public SingleMessage getMatchRemainder(RoutingContext context, final SingleMessage msg) {
         return remainder;
-    }
-
-    @Override
-    public Optional<Object> seekMatch(@Nullable RoutingContext context, @NotNull List<SingleMessage> msgChain) {
-        int index_matched = -1;
-
-        for (int index=0; index<msgChain.size(); index += 1) {
-            if(msgChain.get(index) instanceof PlainText) {
-                String content = ((PlainText) msgChain.get(index)).getContent();
-                if(pattern.matcher(content).matches()) {
-                    index_matched = index;
-                    break;
-                }
-            }
-        }
-
-        if (index_matched != -1) {
-            // Clear everything before the matched part.
-            if (index_matched > 0) {
-                msgChain.subList(0, index_matched).clear();
-            }
-
-            Optional<Object> result = getMatch(context, msgChain.get(0));
-
-            // See if we are asked to retain the matched part, or truncate it.
-            if(!opt.contains(MatchOption.RETAIN)) {
-                msgChain.set(0, remainder);
-            }
-
-            if(opt.contains(MatchOption.CATCH_ALL)) {
-                return Optional.of(msgChain.get(0).contentToString());
-            } else {
-                return result;
-            }
-        } else {
-            return Optional.empty();
-        }
     }
 }

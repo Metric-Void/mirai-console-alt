@@ -63,7 +63,9 @@ tasks.withType(JavaCompile::class.java) {
     options.encoding = "UTF8"
 }
 
-
+tasks.withType(Javadoc::class.java) {
+    options.encoding = "UTF8"
+}
 
 tasks.register("ensureBintrayAvailable") {
     doLast {

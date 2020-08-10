@@ -7,6 +7,10 @@ tasks.withType(JavaCompile::class.java) {
     options.encoding = "UTF8"
 }
 
+tasks.withType(Javadoc::class.java) {
+    options.encoding = "UTF8"
+}
+
 apply(plugin = "com.github.johnrengelman.shadow")
 
 buildscript {

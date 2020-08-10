@@ -6,16 +6,16 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 
 /**
- * A parametrized routing. Constructed by adding parameters to a {@link Routing} with {@see Routing::putParam()}.
+ * A parametrized routing. Constructed by adding parameters to a {@link SimpleRouting} with Routing::putParam().
  */
-public class ParameterizedRouting extends Routing {
+public class ParameterizedSimpleRouting extends SimpleRouting {
     Map<String, Object> parameters;
 
     /**
      * Copy constructor.
      * @param routing Routing to copy from
      */
-    protected ParameterizedRouting(@NotNull Routing routing) {
+    protected ParameterizedSimpleRouting(@NotNull SimpleRouting routing) {
         this.matcherChain = routing.matcherChain;
         this.target = routing.target;
         this.matchParallel = routing.matchParallel;
@@ -27,7 +27,7 @@ public class ParameterizedRouting extends Routing {
      * @param param Value.
      * @return self
      */
-    public ParameterizedRouting putParam(String name, Object param) {
+    public ParameterizedSimpleRouting putParam(String name, Object param) {
         parameters.put(name, param);
         return this;
     }

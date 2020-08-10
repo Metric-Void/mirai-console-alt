@@ -5,7 +5,7 @@ package net.mamoe.mirai.console.scheduler;
  * 使用kt实现, java的API
  */
 
-/**
+/*
  *         PluginScheduler.RepeatTaskReceipt repeatTaskReceipt = this.getScheduler().repeat(() -> {
  *             getLogger().info("I repeat");
  *         },100);

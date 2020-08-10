@@ -1,10 +1,12 @@
 package com.metricv.mirai.router;
 
 import net.mamoe.mirai.Bot;
+import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.contact.User;
 import net.mamoe.mirai.event.Event;
 import net.mamoe.mirai.message.FriendMessageEvent;
 import net.mamoe.mirai.message.GroupMessageEvent;
+import net.mamoe.mirai.message.MessageReceipt;
 import net.mamoe.mirai.message.TempMessageEvent;
 import net.mamoe.mirai.message.data.Message;
 import net.mamoe.mirai.message.data.MessageChain;
@@ -42,28 +44,36 @@ public class RoutingResult extends HashMap<Object, Object> {
     /**
      * Just reply to the original chat window, whether it is group or private.
      * @param msg A plain string message.
+     *
+     * @return A {@link MessageReceipt} that you can quote, recall, etc.
      */
-    public void sendMessage(String msg) {
+    public MessageReceipt<Contact> sendMessage(String msg) {
         if(eventSource instanceof GroupMessageEvent) {
-            ((GroupMessageEvent) eventSource).getGroup().sendMessage(msg);
+            return ((GroupMessageEvent) eventSource).getGroup().sendMessage(msg);
         } else if (eventSource instanceof FriendMessageEvent) {
-            ((FriendMessageEvent) eventSource).getSender().sendMessage(msg);
+            return ((FriendMessageEvent) eventSource).getSender().sendMessage(msg);
         } else if (eventSource instanceof TempMessageEvent) {
-            ((TempMessageEvent) eventSource).getSender().sendMessage(msg);
+            return ((TempMessageEvent) eventSource).getSender().sendMessage(msg);
+        } else {  // Wait.. What??
+            return null;
         }
     }
 
     /**
      * Just reply to the original chat window, whether it is group or private.
      * @param msg A constructed {@link Message}. You can also send a {@link MessageChain}.
+     *
+     * @return A {@link MessageReceipt} that you can quote, recall, etc.
      */
-    public void sendMessage(Message msg) {
+    public MessageReceipt<Contact> sendMessage(Message msg) {
         if(eventSource instanceof GroupMessageEvent) {
-            ((GroupMessageEvent) eventSource).getGroup().sendMessage(msg);
+            return ((GroupMessageEvent) eventSource).getGroup().sendMessage(msg);
         } else if (eventSource instanceof FriendMessageEvent) {
-            ((FriendMessageEvent) eventSource).getSender().sendMessage(msg);
+            return ((FriendMessageEvent) eventSource).getSender().sendMessage(msg);
         } else if (eventSource instanceof TempMessageEvent) {
-            ((TempMessageEvent) eventSource).getSender().sendMessage(msg);
+            return ((TempMessageEvent) eventSource).getSender().sendMessage(msg);
+        } else { // Houston we have a problem
+            return null;
         }
     }
 

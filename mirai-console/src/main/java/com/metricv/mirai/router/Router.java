@@ -19,8 +19,39 @@ import java.util.concurrent.ThreadPoolExecutor;
  * Having only one router is advised. Use getIInstance() to get an instance instead of constructing one.
  */
 public class Router {
+    private class RoutingConfig {
+        /**
+         * The actual routing.
+         */
+        Routing routing;
+
+        /**
+         * "GroupID". Using the name of your plugin is recommended.
+         * This value helps you find a routing you want to operate on.
+         * For example, you can easily activate, deactivate, or remove a named routing.
+         */
+        String groupId;
+
+        /**
+         * "RouteID". Name of this route.
+         * This value helps you find a routing you want to operate on.
+         * For example, you can easily activate, deactivate, or remove a named routing.
+         */
+        String routeId;
+
+        /**
+         * Indicates whether this routing is activated.
+         */
+        boolean isActive;
+    }
+
     private static Router instance = null;
     private static int POOL_THREADS = 64;
+
+    /**
+     * The common thread pool. All messages will reach this thread pool.
+     */
+    ThreadPoolExecutor threadPool;
     /*
      * Routings are separated by nature.
      * Separating them into different groups increases efficiency by a little.
@@ -40,6 +71,7 @@ public class Router {
         } catch (Exception ignore) {
             MiraiConsoleLogger.INSTANCE.invoke("Using " + POOL_THREADS + " threads as default.");
         }
+        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(POOL_THREADS);
     }
 
     public static Router getInstance() {
@@ -48,33 +80,32 @@ public class Router {
     }
 
     public void routeFriendMsg(FriendMessageEvent event) {
-        ExecutorService threadPool = Executors.newFixedThreadPool(POOL_THREADS);
         for(Routing routing: friendMsgRoutings) {
             threadPool.submit(() -> {
                 routing.startRouting(event);
             });
         }
-        threadPool.shutdown();
     }
 
     public void routeTemporaryMsg(TempMessageEvent event) {
-        ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(POOL_THREADS);
         for(Routing routing: tempMsgRoutings) {
             threadPool.submit(()->{
                 routing.startRouting(event);
             });
         }
-        threadPool.shutdown();
     }
 
     public void routeGroupMsg(GroupMessageEvent event) {
-        ExecutorService threadPool = Executors.newFixedThreadPool(POOL_THREADS);
         for(Routing routing: groupMsgRoutings) {
             threadPool.submit(()->{
                 routing.startRouting(event);
             });
         }
+    }
+
+    public void shutdown() {
         threadPool.shutdown();
+        Router.instance = null;
     }
 
     public void addGroupRouting(Routing route) {

@@ -12,9 +12,10 @@ import java.util.Optional;
 /**
  * Prefix Matcher.
  *
- * Matches the start of a string.
+ * Matches the beginning of a string.
  *
  * Does not support "customization" to avoid causing confusion.
+ * MATCH_* or CATCH_* options are <b>IGNORED</b>.
  */
 public class PrefixMatcher implements Matcher{
     String wantedPrefix = "";
@@ -36,33 +37,21 @@ public class PrefixMatcher implements Matcher{
      * @return The remainder of the string, with prefix stripped.
      */
     @Override
-    public Optional<Object> getMatch(@Nullable RoutingContext context, SingleMessage msg) {
+    public MatchResult getMatch(@Nullable RoutingContext context, SingleMessage msg) {
         String msgRaw = (msg instanceof PlainText) ? ((PlainText) msg).getContent() : null;
-        if(msgRaw == null) return Optional.empty();
-        return Optional.of((msgRaw.startsWith(wantedPrefix)) ?
-                msgRaw.substring(wantedPrefix.length()) : msgRaw);
+        if(msgRaw == null) return MatchResult.notMatch();
+            return MatchResult.match(wantedPrefix, new PlainText(msgRaw.substring(wantedPrefix.length()).strip()));
     }
 
     /**
-     * Same as {@see getMatch}.
+     * Same as getMatch.
      * @param context DNC.
      * @param msg The single message to be matched for.
      * @return The remainder of the string, with prefix stripped.
      */
     @Override
     public SingleMessage getMatchRemainder(@Nullable RoutingContext context, final SingleMessage msg) {
-        return new PlainText((String)getMatch(context, msg).orElse(""));
-    }
-
-    /**
-     * Not implemented.
-     * @param context ?
-     * @param msgChain List of message to match for. All preceding terms are remvoed!
-     * @return
-     */
-    @Override
-    public Optional<Object> seekMatch(RoutingContext context, List<SingleMessage> msgChain) {
-        return Optional.empty();
+        return getMatch(context, msg).getMatchRemainder();
     }
 
     /**
