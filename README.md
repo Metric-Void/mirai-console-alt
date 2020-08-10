@@ -27,7 +27,7 @@ Gradle:
 版本可以输入一个release中的tag，也可以给出一个特定的commit，如下：
 ```$xslt
 com.github.Metric-Void.mirai-console-alt:mirai-console:0.5.4-ALT
-com.github.Metric-Void.mirai-console-alt:mirai-console:master-d3e66de332
+com.github.Metric-Void.mirai-console-alt:mirai-console:d3e66de332
 ```
 ## 构建
 ```> .\gradlew shadowJar``` 或 ```.\gradlew shadowJvmJar``` 即可
