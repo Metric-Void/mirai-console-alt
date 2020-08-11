@@ -21,6 +21,21 @@ public class RoutingResult extends HashMap<Object, Object> {
     protected MessageSource msgSource;
     protected Event eventSource;
 
+    public RoutingResult() {
+        super();
+        msgSource = null;
+    }
+
+    /**
+     * Copy constructor.
+     * @param rr
+     */
+    public RoutingResult(RoutingResult rr) {
+        super(rr);
+        this.msgSource = rr.msgSource;
+        this.eventSource = rr.eventSource;
+    }
+
     public boolean isGroupMsg() {
         return eventSource instanceof GroupMessageEvent;
     }
@@ -75,11 +90,6 @@ public class RoutingResult extends HashMap<Object, Object> {
         } else { // Houston we have a problem
             return null;
         }
-    }
-
-    public RoutingResult() {
-        super();
-        msgSource = null;
     }
 
     public MessageSource getMsgSource() {
