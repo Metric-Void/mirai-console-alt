@@ -96,7 +96,7 @@ public class RoutingResult extends HashMap<Object, Object> {
         return msgSource;
     }
 
-    public void insertNonNamed(Object matchResult) {
+    public void put(Object matchResult) {
         this.put(this.size() + 1, matchResult);
     }
 }

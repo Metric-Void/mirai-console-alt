@@ -105,8 +105,8 @@ public class SimpleRouting implements Routing{
             }
 
             if(curr.opts.contains(MatchOption.RETAIN)) {
-                SingleMessage retained = curr.matcher.getMatchRemainder(context, contentList.get(index));
-                if (!(retained instanceof PlainText) || ((PlainText) retained).getContent() != "") {
+                SingleMessage retained = result.getMatchRemainder();
+                if (!(retained instanceof PlainText) || !((PlainText) retained).getContent().equals("")) {
                     contentList.set(index, retained); // does not destroy the original contents.
                     index -= 1; // will be re-incremented by loop
                 }
@@ -116,7 +116,7 @@ public class SimpleRouting implements Routing{
                 if(curr.name != null) {
                     initialResult.put(curr.name, matchResult);
                 } else {
-                    initialResult.insertNonNamed(matchResult);
+                    initialResult.put(matchResult);
                 }
             }
         }

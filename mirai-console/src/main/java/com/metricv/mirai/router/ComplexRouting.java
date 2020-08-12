@@ -3,13 +3,16 @@ package com.metricv.mirai.router;
 import com.metricv.mirai.matcher.MatchOption;
 import com.metricv.mirai.matcher.MatchResult;
 import com.metricv.mirai.matcher.Matcher;
+import com.metricv.mirai.matcher.PsuedoMatcher;
 import net.mamoe.mirai.message.MessageEvent;
 import net.mamoe.mirai.message.data.SingleMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
@@ -32,23 +35,34 @@ public class ComplexRouting implements Routing{
         int nodeId;
         /**
          * Whether this is the terminating node.
-         * If set to true, the matching process will terminate here
-         * And the attached function will be executed.
+         * If set to true, the matching process will terminate here, and the attached function will be executed.
+         *
+         * This value overrides the list of children. If {@code isTerminate == true} and current node matched successfully,
+         * route will always stop, and target function will always be executed.
          */
         boolean isTerminate;
 
         /**
          * Root constructor. Increments counter and set own counter
+         *
+         * @param matcherName Name of the matcher. Could be null, which means unnamed.
          * @param matcher The matcher of this node.
          */
-        MatcherNode(@NotNull Matcher matcher) {
+        protected MatcherNode(@Nullable String matcherName, @NotNull Matcher matcher) {
             this.innerMatcher = matcher;
+            this.matcherName = matcherName;
             this.target = (rr) -> {};
             this.nextNodes = new LinkedList<>();
             this.nodeId = nodeCounter++;
         }
 
-        // TODO Add reasonable ways to construct nodes.
+        /**
+         * Convenience constructor.
+         * @param matcher The matcher of this node.
+         */
+        protected MatcherNode(@NotNull Matcher matcher) {
+            this(null, matcher);
+        }
 
         /**
          * Target function to execute, if this is a terminating node.
@@ -60,8 +74,7 @@ public class ComplexRouting implements Routing{
 
         /**
          * Nodes following this node.
-         * Will be executed in a thread pool if there are multiple targets.
-         * Will be directly executed if there is only one child.
+         * Will be executed in a thread pool after the current node get matcher.
          */
         @NotNull List<MatcherNode> nextNodes;
 
@@ -69,7 +82,7 @@ public class ComplexRouting implements Routing{
          * Execute this node.
          * @param rc Routing context, inherited from the previous node.
          * @param msg The remaining message.
-         * @param rr RoutingResult up to this point.
+         * @param rr RoutingResult up to this point. Will be passed on to child nodes.
          */
         protected void execute(RoutingContext rc, List<SingleMessage> msg, RoutingResult rr) {
             if(msg.size() == 0) return; // Nothing for us to match? Not cool.
@@ -116,9 +129,93 @@ public class ComplexRouting implements Routing{
                 }
             } // If not match, do nothing. Route stops here.
         }
+
+        /**
+         * Add a named child matcher to this node. Returns the child node.
+         *
+         * @param name Name of the child.
+         * @param child The child matcher with name.
+         * @return The newly created child node with given matcher.
+         */
+        public MatcherNode chainChild(String name, Matcher child) {
+            MatcherNode childNode = new MatcherNode(name, child);
+            nextNodes.add(childNode);
+            ComplexRouting.this.allNodes.add(childNode);
+            return childNode;
+        }
+
+        /**
+         * Add an unnamed child matcher to this node. Returns the child node.
+         *
+         * @param child The child matcher with no name.
+         * @return The newly created child node with given matcher.
+         */
+        public MatcherNode chainChild(Matcher child) {
+            return chainChild(null, child);
+        }
+
+        /**
+         * Creates a named new {@link MatcherNode} from given matcher, add it as child, and return self.
+         * Child matcher WILL NOT be returned.
+         *
+         * This function is, generally, a bad idea. You will not have access to the newly created child node.
+         * The only way you can fetch that new child node is to search it in parent class {@link ComplexRouting}.
+         * @param name Name of the matcher
+         * @param child The child matcher to add.
+         * @return The node itself.
+         */
+        public MatcherNode addChild(String name, Matcher child) {
+            MatcherNode childNode = new MatcherNode(name, child);
+            nextNodes.add(childNode);
+            ComplexRouting.this.allNodes.add(childNode);
+            return this;
+        }
+
+        /**
+         * Creates an unnamed new {@link MatcherNode} from given matcher, add it as child, and return self.
+         * Child matcher WILL NOT be returned.
+         *
+         * This function is, generally, a bad idea. You will not have access to the newly created child node.
+         * The only way you can fetch that new child node is to search it in parent class {@link ComplexRouting}.
+         * @param child The child matcher to add.
+         * @return The node itself.
+         */
+        public MatcherNode addChild(Matcher child) {
+            return addChild(null, child);
+        }
+
+        /**
+         * Add the given MatcherNode to this node as a child
+         * Returns this node itself for convenience of adding multiple child.
+         * Just don't form a loop.
+         *
+         * @param childNode The constructed MatcherNode.
+         * @return The node itself.
+         */
+        public MatcherNode addChild(MatcherNode childNode) {
+            this.nextNodes.add(childNode);
+            ComplexRouting.this.allNodes.add(childNode);
+            return this;
+        }
+
+        public boolean equals(Object other) {
+            return (other instanceof MatcherNode) && (this.nodeId == ((MatcherNode) other).nodeId);
+        }
+
+        // TODO Add some static methods that generate template nodes.
+
+        // TODO Add getter and setter methods.
     }
 
+    /*
+        Body of ComplexRouting.
+     */
+
+    /*
+        Fields
+     */
     private MatcherNode entryNode;
+    private Set<MatcherNode> allNodes;
 
     /**
      * Thread pool specifically for this complex routing.
@@ -126,18 +223,61 @@ public class ComplexRouting implements Routing{
      */
     private ThreadPoolExecutor threadPool;
 
-    ComplexRouting() {
+    /**
+     * Private constructor. Initialize things.
+     */
+    private ComplexRouting() {
         // Let's hardcode this for now. No matcher should take more than 30 seconds right?
         // This is even enough for some light OCR jobs
         threadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                 30L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>());
+        allNodes = new HashSet<>();
     }
 
-    // TODO Think of ways to initialize a routing and add nodes.
+    /*
+        Methods
+     */
 
     @Override
     public void startRouting(@NotNull MessageEvent event) {
         // TODO finish this
     }
+
+    public MatcherNode getRoot() {
+        return entryNode;
+    }
+
+    /**
+     * Construct a routing with given Matcher as root.
+     * This is a great way to construct a routing if all your commands start with the same prefix.
+     *
+     * Returns the constructed {@link ComplexRouting}, with given matcher as root node.
+     * Use getRoot() to get that node and add child nodes to it.
+     *
+     * @param matcher A Matcher
+     * @return A {@link ComplexRouting}.
+     */
+    public static ComplexRouting withRoot(Matcher matcher) {
+        ComplexRouting newRoute = new ComplexRouting();
+        MatcherNode newRoot = newRoute.new MatcherNode(matcher);
+        newRoute.entryNode = newRoot;
+        newRoute.allNodes.add(newRoot);
+        return newRoute;
+    }
+
+    /**
+     * Construct a routing with a PsuedoMatcher as root.
+     * A PsuedoMatcher will not match anything. It simply carries on the message to its children.
+     *
+     * Returns the constructed {@link ComplexRouting}, with an empty root node.
+     * Use getRoot() to get that node and add child nodes to it.
+     *
+     * @return A {@link ComplexRouting}.
+     */
+    public static ComplexRouting withBlankRoot() {
+        return withRoot(new PsuedoMatcher());
+    }
+
+    // TODO Think of ways to initialize a routing and add nodes.
 }
