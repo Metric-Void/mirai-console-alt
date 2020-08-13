@@ -1,5 +1,9 @@
 # 更新日志
 
+### 0.5.4.1-ALT
+- 完成了ComplexRouting.
+- 修复了许多bug，包括一些乱七八糟的错误（捂脸
+
 ### 0.5.4-ALT
 - 加入了mirai-router并自动加载。Java用户可以直接使用Router订阅消息事件。
 目前router提供的功能有限，kotlin api在subscribe中已经有了各种filter，可以完成此处的功能。

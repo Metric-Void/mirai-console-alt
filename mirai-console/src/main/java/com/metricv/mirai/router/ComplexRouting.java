@@ -88,10 +88,8 @@ public class ComplexRouting implements Routing{
          * @param rr RoutingResult up to this point. Will be passed on to child nodes.
          */
         protected void execute(RoutingContext rc, List<SingleMessage> msg, RoutingResult rr) {
-            System.out.println((matcherName!=null? matcherName : "null") + " Executing on " + msg.toString());
             if(msg.size() == 0) {
                 if(this.isTerminate) {
-                    System.out.println((matcherName!=null? matcherName : "null") + " Executing on " + msg.toString() + "TARGET CALLED");
                     target.accept(rr);
                 } else {
                     return;
@@ -115,7 +113,6 @@ public class ComplexRouting implements Routing{
             }
 
             if(result.isMatch()) {
-                System.out.println((matcherName!=null? matcherName : "null") + " Executing on " + msg.toString() + "MATCHED");
                 // Put result into Routing Result.
                 newRr.put(matcherName == null? nodeId : matcherName, result.getMatchResult());
 
@@ -129,22 +126,16 @@ public class ComplexRouting implements Routing{
 
                 // Termination node?
                 if(this.isTerminate) {
-                    System.out.println((matcherName!=null? matcherName : "null") + " Executing on " + msg.toString() + "TARGET CALLED");
                     target.accept(newRr);
                 } else {
                     // Put child nodes into thread pool.
-                    System.out.println((matcherName!=null? matcherName : "null") + " Executing on " + msg.toString() + "NO TERM-CONTINUE");
                     nextNodes.forEach((node) -> {
                         threadPool.submit(() -> {
                             node.execute(rc, nextMsg, newRr);
                         });
                     });
                 }
-            } else {
-                System.out.println((matcherName!=null? matcherName : "null") + " Executing on " + msg.toString() + "NO MATCH");
-                // If not match, do nothing. Route stops here.
-            }
-
+            } // If not match, do nothing. Route stops here.
         }
 
         /**
@@ -273,7 +264,6 @@ public class ComplexRouting implements Routing{
 
     @Override
     public void startRouting(@NotNull MessageEvent event) {
-        System.out.println("ComplexRoute: message from" + event.getSenderName());
         RoutingContext rc = new RoutingContext(event);
         List<SingleMessage> msg = event.getMessage();
         RoutingResult thisRun = new RoutingResult(paramedPreResult);
