@@ -31,18 +31,11 @@ jobs:
       - name: Upload artifact mirai-console
         uses: actions/upload-artifact@v2
         with:
-          name: mirai-console
-          path: mirai-console/build/libs/*.jar
-      - name: Upload artifact mirai-console-graphical
-        uses: actions/upload-artifact@v2
-        with:
-          name: mirai-console-graphical
-          path: mirai-console-graphical/build/libs/*.jar
-      - name: Upload artifact mirai-console-terminal
-        uses: actions/upload-artifact@v2
-        with:
-          name: mirai-console-terminal
-          path: mirai-console-terminal/build/libs/*.jar
+          name: mirai-console (all variants)
+          path: |
+            mirai-console/build/libs/*.jar
+            mirai-console-graphical/build/libs/*.jar
+            mirai-console-terminal/build/libs/*.jar
 
 
 #      - name: Upload artifact

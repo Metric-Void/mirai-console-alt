@@ -38,9 +38,10 @@ public class PrefixMatcher implements Matcher{
      */
     @Override
     public MatchResult getMatch(@Nullable RoutingContext context, SingleMessage msg) {
-        String msgRaw = (msg instanceof PlainText) ? ((PlainText) msg).getContent() : null;
+        String msgRaw = (msg instanceof PlainText) ? ((PlainText) msg).getContent().strip() : null;
         if(msgRaw == null) return MatchResult.notMatch();
-            return MatchResult.match(wantedPrefix, new PlainText(msgRaw.substring(wantedPrefix.length()).strip()));
+            else if (!msgRaw.startsWith(wantedPrefix)) return MatchResult.notMatch();
+            else return MatchResult.match(wantedPrefix, new PlainText(msgRaw.substring(wantedPrefix.length()).strip()));
     }
 
     /**

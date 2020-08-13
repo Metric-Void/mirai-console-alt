@@ -5,6 +5,9 @@ import com.metricv.mirai.matcher.MatchResult;
 import com.metricv.mirai.matcher.Matcher;
 import com.metricv.mirai.matcher.PsuedoMatcher;
 import net.mamoe.mirai.message.MessageEvent;
+import net.mamoe.mirai.message.data.Message;
+import net.mamoe.mirai.message.data.MessageChain;
+import net.mamoe.mirai.message.data.MessageSource;
 import net.mamoe.mirai.message.data.SingleMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +32,7 @@ public class ComplexRouting implements Routing{
      */
     private static int nodeCounter = 1;
 
-    protected class MatcherNode {
+    public class MatcherNode {
         @NotNull Matcher innerMatcher;
         @Nullable String matcherName;
         int nodeId;
@@ -85,7 +88,15 @@ public class ComplexRouting implements Routing{
          * @param rr RoutingResult up to this point. Will be passed on to child nodes.
          */
         protected void execute(RoutingContext rc, List<SingleMessage> msg, RoutingResult rr) {
-            if(msg.size() == 0) return; // Nothing for us to match? Not cool.
+            System.out.println((matcherName!=null? matcherName : "null") + " Executing on " + msg.toString());
+            if(msg.size() == 0) {
+                if(this.isTerminate) {
+                    System.out.println((matcherName!=null? matcherName : "null") + " Executing on " + msg.toString() + "TARGET CALLED");
+                    target.accept(rr);
+                } else {
+                    return;
+                }
+            }
 
             // Copy the routing result to avoid spilling rr in other threads.
             RoutingResult newRr = new RoutingResult(rr);
@@ -101,10 +112,10 @@ public class ComplexRouting implements Routing{
             } else {
                 curr = msg.get(0);
                 result = innerMatcher.getMatch(rc, curr);
-
             }
 
             if(result.isMatch()) {
+                System.out.println((matcherName!=null? matcherName : "null") + " Executing on " + msg.toString() + "MATCHED");
                 // Put result into Routing Result.
                 newRr.put(matcherName == null? nodeId : matcherName, result.getMatchResult());
 
@@ -118,16 +129,22 @@ public class ComplexRouting implements Routing{
 
                 // Termination node?
                 if(this.isTerminate) {
+                    System.out.println((matcherName!=null? matcherName : "null") + " Executing on " + msg.toString() + "TARGET CALLED");
                     target.accept(newRr);
                 } else {
                     // Put child nodes into thread pool.
+                    System.out.println((matcherName!=null? matcherName : "null") + " Executing on " + msg.toString() + "NO TERM-CONTINUE");
                     nextNodes.forEach((node) -> {
                         threadPool.submit(() -> {
                             node.execute(rc, nextMsg, newRr);
                         });
                     });
                 }
-            } // If not match, do nothing. Route stops here.
+            } else {
+                System.out.println((matcherName!=null? matcherName : "null") + " Executing on " + msg.toString() + "NO MATCH");
+                // If not match, do nothing. Route stops here.
+            }
+
         }
 
         /**
@@ -205,6 +222,19 @@ public class ComplexRouting implements Routing{
         // TODO Add some static methods that generate template nodes.
 
         // TODO Add getter and setter methods.
+        public void setTarget(@NotNull Consumer<RoutingResult> target) {
+            this.target = target;
+        }
+
+        public MatcherNode setTerminate() {
+            this.isTerminate = true;
+            return this;
+        }
+
+        public MatcherNode unsetTerminate() {
+            this.isTerminate = false;
+            return this;
+        }
     }
 
     /*
@@ -216,6 +246,7 @@ public class ComplexRouting implements Routing{
      */
     private MatcherNode entryNode;
     private Set<MatcherNode> allNodes;
+    private RoutingResult paramedPreResult;
 
     /**
      * Thread pool specifically for this complex routing.
@@ -233,6 +264,7 @@ public class ComplexRouting implements Routing{
                 30L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>());
         allNodes = new HashSet<>();
+        paramedPreResult = new RoutingResult();
     }
 
     /*
@@ -241,7 +273,17 @@ public class ComplexRouting implements Routing{
 
     @Override
     public void startRouting(@NotNull MessageEvent event) {
-        // TODO finish this
+        System.out.println("ComplexRoute: message from" + event.getSenderName());
+        RoutingContext rc = new RoutingContext(event);
+        List<SingleMessage> msg = event.getMessage();
+        RoutingResult thisRun = new RoutingResult(paramedPreResult);
+        thisRun.eventSource = event;
+
+        if(event.getMessage().first(MessageSource.Key) != null) {
+            thisRun.msgSource = event.getMessage().first(MessageSource.Key);
+            msg = msg.subList(1, event.getMessage().getSize());
+        }
+        this.getRoot().execute(rc, msg, thisRun);
     }
 
     public MatcherNode getRoot() {
@@ -277,6 +319,14 @@ public class ComplexRouting implements Routing{
      */
     public static ComplexRouting withBlankRoot() {
         return withRoot(new PsuedoMatcher());
+    }
+
+    public MatcherNode makeNode(Matcher matcher) {
+        return new MatcherNode(matcher);
+    }
+
+    public MatcherNode makeNode(String name, Matcher matcher) {
+        return new MatcherNode(name, matcher);
     }
 
     // TODO Think of ways to initialize a routing and add nodes.

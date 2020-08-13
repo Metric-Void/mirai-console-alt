@@ -82,26 +82,26 @@ public class SimpleRouting implements Routing{
 
         // Start matching
         for(int index=0; index < matcherChain.size(); index += 1) {
-            Optional<Object> matchResult = Optional.empty();
+            Object matchResult = null;
             MatcherConfig curr = matcherChain.get(index);
-            MatchResult result = curr.matcher.getMatch(context, contentList.get(index));
 
+            SingleMessage currMsg;
+            MatchResult result;
             if(curr.opts.contains(MatchOption.SEEK_NEXT)) {
-                while(index < matcherChain.size()) {
-                    if (result.isMatch()) {
-                        matchResult = result.getMatchResult();
-                        break;
-                    }
-                    index += 1;
-                    result = curr.matcher.getMatch(context, contentList.get(index));
-                }
-                if(matchResult.isEmpty()) return;
+                int localIndex = index;
+                do {
+                    currMsg = contentList.get(localIndex++);
+                    result = curr.matcher.getMatch(context, currMsg);
+                } while (!result.isMatch() && localIndex < contentList.size());
             } else {
-                if(curr.matcher.isMatch(context, contentList.get(index))) {
-                    matchResult = result.getMatchResult();
-                } else {
-                    return;
-                }
+                currMsg = contentList.get(index);
+                result = curr.matcher.getMatch(context, currMsg);
+            }
+
+            if(result.isMatch()) {
+                matchResult = result.getMatchResult();
+            } else {
+                return;
             }
 
             if(curr.opts.contains(MatchOption.RETAIN)) {
@@ -134,6 +134,22 @@ public class SimpleRouting implements Routing{
         MatcherConfig mc = new MatcherConfig();
         mc.matcher = nextMatcher;
         mc.name = null;
+        mc.opts = nextMatcher.getCurrentOpts();
+
+        matcherChain.add(mc);
+        return this;
+    }
+
+    /**
+     * Attach a matcher that matches the next new message.
+     * The previous matcher will be forcifully set to "DISPOSE".
+     * @param nextMatcher The next matcher. Construct one yourself.
+     * @return self
+     */
+    public SimpleRouting thenMatch(String matcherName, Matcher nextMatcher) {
+        MatcherConfig mc = new MatcherConfig();
+        mc.matcher = nextMatcher;
+        mc.name = matcherName;
         mc.opts = nextMatcher.getCurrentOpts();
 
         matcherChain.add(mc);

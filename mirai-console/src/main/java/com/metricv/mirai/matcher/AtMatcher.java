@@ -13,10 +13,11 @@ import java.util.Optional;
  * Matches an @.
  * This matcher does not care about MatchOptions.
  * It will always match an At or AtAll element, and return qqid as match.
- * qqid=0 means @all.
+ * qqid=0 means @all. qqid=-1 means anyone. qqid=-2 means the bot.
  *
  * Does not care about MATCH_* or CATCH_* options.
- * It will always match the @At, and returns the id being "ATted".
+ * It will always match an @qqid, and return the actual qqid.
+ * - In case of -2, returns the qqid of the bot.
  * - In case of -1 (match anyone), the one who's being actually "ATted" will be returned as the matched result.
  * - In case of 0 (@all), 0 will be the matched result.
  */
@@ -25,9 +26,10 @@ public class AtMatcher implements Matcher {
 
     /**
      * Create a AtMatcher.
+     * qqid=-2 means the bot.
      * qqid=-1 means anyone.
      * qqid=0 means @all.
-     * @param qqid
+     * @param qqid The ID to match.
      */
     public AtMatcher(long qqid) {
         this.qqid = qqid;
@@ -36,7 +38,9 @@ public class AtMatcher implements Matcher {
     @Override
     public boolean isMatch(RoutingContext context, SingleMessage msg) {
         if(msg instanceof At) {
-            return qqid == -1 || ((At) msg).getTarget() == qqid;
+            return qqid == -1 ||
+                    ((At) msg).getTarget() == qqid ||
+                    (qqid==-2) && ((At) msg).getTarget() == context.getBot().getId();
         } else if (msg instanceof AtAll) {
             return qqid == 0;
         }
@@ -46,10 +50,10 @@ public class AtMatcher implements Matcher {
     @Override
     public MatchResult getMatch(RoutingContext context, SingleMessage msg) {
         if(msg instanceof At) {
-            if (qqid == -1 || ((At) msg).getTarget() == qqid)
-                return MatchResult.match(((At) msg).getTarget(), null);
-        } else if (msg instanceof AtAll) {
-            return MatchResult.match(0, null);
+            if (qqid == -1 || ((At) msg).getTarget() == qqid || (qqid==-2) && ((At) msg).getTarget() == context.getBot().getId())
+                return MatchResult.match(msg, null);
+        } else if (msg instanceof AtAll && qqid == 0) {
+            return MatchResult.match(msg, null);
         }
         return MatchResult.notMatch();
     }

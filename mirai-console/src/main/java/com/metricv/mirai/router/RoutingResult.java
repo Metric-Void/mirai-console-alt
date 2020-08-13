@@ -99,4 +99,16 @@ public class RoutingResult extends HashMap<Object, Object> {
     public void put(Object matchResult) {
         this.put(this.size() + 1, matchResult);
     }
+
+    public String getSenderName() {
+        if(eventSource instanceof GroupMessageEvent) {
+            return ((GroupMessageEvent) eventSource).getSenderName();
+        } else if (eventSource instanceof FriendMessageEvent) {
+            return ((FriendMessageEvent) eventSource).getSenderName();
+        } else if (eventSource instanceof TempMessageEvent) {
+            return ((TempMessageEvent) eventSource).getSenderName();
+        } else { // Houston we have a problem
+            return null;
+        }
+    }
 }

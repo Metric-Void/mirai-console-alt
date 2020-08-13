@@ -11,10 +11,10 @@ import java.util.Optional;
  */
 public class MatchResult {
     boolean isMatch;
-    @NotNull Optional<Object> matchResult;
+    @NotNull Object matchResult;
     @Nullable SingleMessage matchRemainder;
 
-    MatchResult(boolean isMatch, @NotNull Optional<Object> matchResult, @Nullable SingleMessage matchRemainder) {
+    MatchResult(boolean isMatch, @NotNull Object matchResult, @Nullable SingleMessage matchRemainder) {
         this.isMatch = isMatch;
         this.matchRemainder = matchRemainder;
         this.matchResult = matchResult;
@@ -25,7 +25,7 @@ public class MatchResult {
     }
 
     public static MatchResult match(@NotNull Object matchResult, @Nullable SingleMessage matchRemainder) {
-        return new MatchResult(true, Optional.of(matchResult), matchRemainder);
+        return new MatchResult(true, matchResult, matchRemainder);
     }
 
     public boolean isMatch() {
@@ -36,19 +36,19 @@ public class MatchResult {
         isMatch = match;
     }
 
-    @NotNull public Optional<Object> getMatchResult() {
+    @NotNull public Object getMatchResult() {
         return matchResult;
     }
 
-    public void setMatchResult(Optional<Object> matchResult) {
+    public void setMatchResult(@NotNull Object matchResult) {
         this.matchResult = matchResult;
     }
 
-    public SingleMessage getMatchRemainder() {
+    public @Nullable SingleMessage getMatchRemainder() {
         return matchRemainder;
     }
 
-    public void setMatchRemainder(SingleMessage matchRemainder) {
+    public void setMatchRemainder(@Nullable SingleMessage matchRemainder) {
         this.matchRemainder = matchRemainder;
     }
 }
